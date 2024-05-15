@@ -37,6 +37,11 @@ class PetController extends Controller
         return view('pet.edit');
     }
 
+    public function update(): \Illuminate\View\View
+    {
+        return view('pet.update');
+    }
+
     public function delete(): \Illuminate\View\View
     {
         return view('pet.delete');
@@ -129,17 +134,17 @@ class PetController extends Controller
 
     public function store(Request $request)
     {
-        $validated = $this->validateRequest($request);
+        $validated = $this->validateCreateRequest($request);
 
         try {
-            return $response = $this->createPet($validated);
+            $response = $this->createPet($validated);
             return $this->handleResponse($response);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             return $this->handleClientException($e);
         }
     }
 
-    private function validateRequest(Request $request)
+    private function validateCreateRequest(Request $request)
     {
         return $request->validate([
             'name' => 'required|string',
@@ -168,5 +173,33 @@ class PetController extends Controller
         }
 
         return view('pet.error', ['message' => $content]);
+    }
+
+    public function editData(Request $request)
+    {
+        $validated = $this->validateEditRequest($request);
+
+        try {
+            $response = $this->editPet($validated);
+            return $this->handleResponse($response);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->handleClientException($e);
+        }
+    }
+
+    private function validateEditRequest(Request $request)
+    {
+        return $request->validate([
+            'petId' => 'required|integer',
+            'name' => 'sometimes|required|string',
+            'status' => ['sometimes', 'required', 'string', Rule::in(['available', 'pending', 'sold'])],
+        ]);
+    }
+
+    private function editPet(array $data)
+    {
+        $petId = $data['petId'];
+        $apiEndpoint = 'pet/' . $petId;
+        return $this->client->request('POST', $apiEndpoint, ['form_params' => $data]);
     }
 }

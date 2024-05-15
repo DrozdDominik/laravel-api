@@ -8,6 +8,7 @@
     <div>
         <a href="{{ route('getPets') }}" class="btn btn-primary">Show Pets (GET)</a>
         <a href="{{ route('addPet') }}" class="btn btn-primary">Add Pet (POST)</a>
+        <a href="{{ route('editPet') }}" class="btn btn-primary">Edit Pet (POST)</a>
         <a href="{{ route('updatePet') }}" class="btn btn-primary">Update Pet (PUT)</a>
         <a href="{{ route('deletePet') }}" class="btn btn-primary">Delete Pet (DELETE)</a>
     </div>
