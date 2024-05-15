@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Validation\Rule; 
 use GuzzleHttp\Client;
 use Illuminate\Support\Facades\Log;
+use App\Models\Pet;
 
 class PetController extends Controller
 {
@@ -46,8 +47,8 @@ class PetController extends Controller
         $petId = $this->validatePetId($request);
 
         try {
-            $pet = $this->fetchPet($petId);
-            $this->validatePetFields($pet);
+            $petData = $this->fetchPet($petId);
+            $pet = new Pet($petData);
 
             return view('pet.pet', ['pet' => $pet]);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
@@ -60,8 +61,8 @@ class PetController extends Controller
         $statuses = $this->validateStatuses($request);
 
         try {
-            $pets = $this->fetchPetsByStatus($statuses);
-            $this->validatePetsFields($pets);
+            $petsData = $this->fetchPetsByStatus($statuses);
+            $pets = $this->createPetObjects($petsData);
 
             return view('pet.pets_by_status', ['pets' => $pets]);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
@@ -84,14 +85,15 @@ class PetController extends Controller
         return json_decode($response->getBody()->getContents(), true);
     }
 
-    private function validatePetFields(array $pet): void
+    private function createPetObjects(array $petsData): array
     {
-        $expectedFields = ['id', 'name', 'status', 'photoUrls', 'tags'];
-        foreach ($expectedFields as $field) {
-            if (!isset($pet[$field])) {
-                throw new \Exception("Expected field {$field} not found in API response");
-            }
+        $pets = [];
+
+        foreach ($petsData as $petData) {
+            $pets[] = new Pet($petData);
         }
+
+        return $pets;
     }
 
     private function handleClientException(\GuzzleHttp\Exception\ClientException $e): \Illuminate\View\View
@@ -123,12 +125,5 @@ class PetController extends Controller
 
         $response = $this->client->request('GET', $apiEndpoint);
         return json_decode($response->getBody()->getContents(), true);
-    }
-
-    private function validatePetsFields(array $pets): void
-    {
-        foreach ($pets as $pet) {
-            $this->validatePetFields($pet);
-        }
     }
 }
