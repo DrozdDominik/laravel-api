@@ -240,4 +240,16 @@ class PetController extends Controller
         $pet = new Pet($data);
         return $this->client->request('PUT', 'pet', ['json' => $pet->toArray()]);
     }
+
+    public function deletePet(Request $request)
+    {
+        $petId = $this->validatePetId($request);
+
+        try {
+            $response = $this->client->request('DELETE', "pet/{$petId}");
+            return $this->handleResponse($response);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->handleClientException($e);
+        }
+    }
 }
