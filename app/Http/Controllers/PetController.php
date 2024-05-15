@@ -126,4 +126,47 @@ class PetController extends Controller
         $response = $this->client->request('GET', $apiEndpoint);
         return json_decode($response->getBody()->getContents(), true);
     }
+
+    public function store(Request $request)
+    {
+        $validated = $this->validateRequest($request);
+
+        try {
+            return $response = $this->createPet($validated);
+            return $this->handleResponse($response);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->handleClientException($e);
+        }
+    }
+
+    private function validateRequest(Request $request)
+    {
+        return $request->validate([
+            'name' => 'required|string',
+            'status' => ['nullable', 'string', Rule::in(['available', 'pending', 'sold'])],
+            'photoUrls' => 'required|array|min:1',
+            'photoUrls.*' => 'url',
+            'tags' => 'nullable|array',
+            'tags.*' => 'nullable|string',
+            'category' => 'nullable|string',
+        ]);
+    }
+
+    private function createPet(array $data)
+    {
+        $pet = new Pet($data);
+        return $this->client->request('POST', 'pet', ['json' => $pet->toArray()]);
+    }
+
+    private function handleResponse($response)
+    {
+        $statusCode = $response->getStatusCode();
+        $content = $response->getBody()->getContents();
+
+        if ($statusCode === 200) {
+            return view('pet.success', ['message' => $content]);
+        }
+
+        return view('pet.error', ['message' => $content]);
+    }
 }
