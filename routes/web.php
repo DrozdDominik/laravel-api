@@ -13,3 +13,4 @@ Route::get('/pet', [PetController::class, 'getPet'])->name('getPet');
 Route::get('/pets/status', [PetController::class, 'getPetsByStatus'])->name('getPetsByStatus');
 Route::post('/pet', [PetController::class, 'store'])->name('createPet');
 Route::post('/pet/edit', [PetController::class, 'editData'])->name('editData');
+Route::post('/pet/update', [PetController::class, 'updateData'])->name('updateData');

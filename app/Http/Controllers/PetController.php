@@ -202,4 +202,36 @@ class PetController extends Controller
         $apiEndpoint = 'pet/' . $petId;
         return $this->client->request('POST', $apiEndpoint, ['form_params' => $data]);
     }
+
+    public function updateData(Request $request)
+    {
+        $validated = $this->validatePetData($request);
+
+        try {
+            $response = $this->updatePet($validated);
+            return $this->handleResponse($response);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->handleClientException($e);
+        }
+    }
+
+    private function validatePetData(Request $request)
+    {
+        return $request->validate([
+            'id' => 'required|integer',
+            'name' => 'required|string',
+            'status' => ['nullable', 'string', Rule::in(['available', 'pending', 'sold'])],
+            'photoUrls' => 'required|array|min:1',
+            'photoUrls.*' => 'url',
+            'tags' => 'nullable|array',
+            'tags.*' => 'nullable|string',
+            'category' => 'nullable|string',
+        ]);
+    }
+
+    private function updatePet(array $data)
+    {
+        $pet = new Pet($validated);
+        $response = $this->client->request('PUT', 'pet', ['json' => $pet->toArray()]);
+    }
 }
