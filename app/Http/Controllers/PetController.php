@@ -105,9 +105,15 @@ class PetController extends Controller
     {
         Log::error($e->getMessage());
         $response = $e->getResponse();
+        $statusCode = $response->getStatusCode();
+
+        if ($statusCode === 404) {
+            return view('pet.error', ['message' => 'Pet not found']);
+        }
+
         $responseBodyAsString = $response->getBody()->getContents();
         $error = json_decode($responseBodyAsString, true);
-        $err = $error['message'];
+        $err = is_array($error) && isset($error['message']) ? $error['message'] : 'Unknown error';
         return view('pet.error', ['message' => $err]);
     }
 
@@ -169,7 +175,7 @@ class PetController extends Controller
         $content = $response->getBody()->getContents();
 
         if ($statusCode === 200) {
-            return view('pet.success', ['message' => $content]);
+            return view('pet.success', ['message' => 'Success']);
         }
 
         return view('pet.error', ['message' => $content]);
@@ -231,7 +237,7 @@ class PetController extends Controller
 
     private function updatePet(array $data)
     {
-        $pet = new Pet($validated);
-        $response = $this->client->request('PUT', 'pet', ['json' => $pet->toArray()]);
+        $pet = new Pet($data);
+        return $this->client->request('PUT', 'pet', ['json' => $pet->toArray()]);
     }
 }

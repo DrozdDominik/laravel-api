@@ -20,7 +20,7 @@
         <p>Tags:</p>
         <ul>
         @foreach($pet->tags as $tag)
-            <li>{{ $tag->name ?? 'N/A' }}</li>
+            <li>{{ is_string($tag->name) ? $tag->name : 'N/A' }}</li>
         @endforeach
         </ul>
     @endif
