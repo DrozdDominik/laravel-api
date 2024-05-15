@@ -43,12 +43,12 @@ class Pet
     {
         return [
             'name' => $this->name,
-            'status' => $this->status,
+            'status' => $this->status ?? null,
             'photoUrls' => $this->photoUrls,
-            'tags' => array_map(function($tag) {
+            'tags' => (!empty($this->tags)) ? array_map(function($tag) {
                 return $tag->toArray();
-            }, $this->tags),
-            'category' => $this->category->toArray(),
+            }, $this->tags) : null,
+            'category' => $this->category ? $this->category->toArray() : null,
         ];
     }
 }

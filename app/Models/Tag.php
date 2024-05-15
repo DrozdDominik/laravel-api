@@ -7,7 +7,7 @@ class Tag
     public $id;
     public $name;
 
-    public function __construct($id, $name)
+    public function __construct($name, $id)
     {
         $this->id = $id;
         $this->name = $name;
@@ -16,8 +16,8 @@ class Tag
     public function toArray()
     {
         return [
-            'id' => $this->id,
             'name' => $this->name,
+            'id' => $this->id,
         ];
     }
 }
