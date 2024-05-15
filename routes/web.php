@@ -9,3 +9,4 @@ Route::get('/pets/add', [PetController::class, 'create'])->name('addPet');
 Route::get('/pets/update', [PetController::class, 'edit'])->name('updatePet');
 Route::get('/pets/delete', [PetController::class, 'delete'])->name('deletePet');
 Route::get('/pet', [PetController::class, 'getPet'])->name('getPet');
+Route::get('/pets/status', [PetController::class, 'getPetsByStatus'])->name('getPetsByStatus');

@@ -22,6 +22,18 @@
         <input type="submit" value="Search by ID">
     </form>
 
+    <br>
+
+    <form method="GET" action="{{ route('getPetsByStatus') }}">
+        <label for="status">Status:</label>
+        <select id="status" name="status[]" multiple>
+            <option value="available">Available</option>
+            <option value="pending">Pending</option>
+            <option value="sold">Sold</option>
+        </select>
+        <input type="submit" value="Search by Status">
+    </form>
+
     <a href="/" class="btn btn-primary">Go back</a>
 </body>
 </html>

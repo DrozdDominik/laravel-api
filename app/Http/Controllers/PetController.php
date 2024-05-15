@@ -70,4 +70,42 @@ class PetController extends Controller
             return view('pet.error', ['message' => $err]);
         }
     }
+
+    public function getPetsByStatus(Request $request): \Illuminate\View\View
+    {
+        $validated = $request->validate([
+            'status' => 'required|array|min:1|max:3',
+            'status.*' => 'in:available,pending,sold',
+        ]);
+    
+        $statuses = $validated['status'];
+
+        try {
+            $apiEndpoint='pet/findByStatus';
+            foreach ($statuses as $index => $status) {
+                $index == 0 ? $apiEndpoint .= '?status=' . $status : $apiEndpoint .= '&status=' . $status;
+            }
+
+            $response = $this->client->request('GET', $apiEndpoint);
+            $pets = json_decode($response->getBody()->getContents(), true);
+
+            $expectedFields = ['id', 'name', 'status', 'photoUrls', 'tags'];
+            foreach ($pets as $pet) {
+                foreach ($expectedFields as $field) {
+                    if (!isset($pet[$field])) {
+                        return view('pet.error', ['message' => "Expected field {$field} not found in API response"]);
+                    }
+                }
+            }
+
+            return view('pet.pets_by_status', ['pets' => $pets]);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            Log::error($e->getMessage());
+            $response = $e->getResponse();
+            $responseBodyAsString = $response->getBody()->getContents();
+            $error = json_decode($responseBodyAsString, true);
+            $err = $error['message'];
+            return view('pet.error', ['message' => $err]);
+        }
+    }
 }
