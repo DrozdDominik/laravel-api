@@ -11,6 +11,7 @@
         <a href="{{ route('editPet') }}" class="btn btn-primary">Edit Pet (POST)</a>
         <a href="{{ route('updatePet') }}" class="btn btn-primary">Update Pet (PUT)</a>
         <a href="{{ route('deletePet') }}" class="btn btn-primary">Delete Pet (DELETE)</a>
+        <a href="{{ route('upload') }}" class="btn btn-primary">Upload Pet Image (POST)</a>
     </div>
 </body>
 </html>

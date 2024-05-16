@@ -48,6 +48,11 @@ class PetController extends Controller
         return $this->loadView('delete');
     }
 
+    public function upload(): \Illuminate\View\View
+    {
+        return $this->loadView('upload');
+    }
+
     private function loadView(string $viewName): \Illuminate\View\View
     {
         return view('pet.' . $viewName);
@@ -283,5 +288,46 @@ class PetController extends Controller
             Log::error($e->getMessage());
             return $this->loadErrorView('Unexpected error occurred');
         }
+    }
+
+    public function uploadImage(Request $request)
+    {
+        $validated = $this->validateUploadImageRequest($request);
+
+        try {
+            $response = $this->sendUploadImageRequest($validated);
+            return $this->handleResponse($response);
+        } catch (\GuzzleHttp\Exception\ClientException $e) {
+            return $this->handleClientException($e);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            Log::error($e->getMessage());
+            return $this->loadErrorView('Unexpected error occurred');
+        }
+    }
+
+    private function validateUploadImageRequest(Request $request)
+    {
+        return $request->validate([
+            'petId' => 'required|integer',
+            'additionalMetadata' => 'nullable|string',
+            'file' => 'required|file',
+        ]);
+    }
+
+    private function sendUploadImageRequest($data)
+    {
+        return $this->client->request('POST', "pet/{$data['petId']}/uploadImage", [
+            'multipart' => [
+                [
+                    'name'     => 'additionalMetadata',
+                    'contents' => $data['additionalMetadata'] ?? '',
+                ],
+                [
+                    'name'     => 'file',
+                    'contents' => fopen($data['file']->path(), 'r'),
+                    'filename' => $data['file']->getClientOriginalName(),
+                ],
+            ],
+        ]);
     }
 }
