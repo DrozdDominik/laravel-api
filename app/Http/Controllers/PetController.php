@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule; 
-use GuzzleHttp\Client;
-use Illuminate\Support\Facades\Log;
 use App\Models\Pet;
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
 
 class PetController extends Controller
 {
@@ -19,32 +20,37 @@ class PetController extends Controller
 
     public function index(): \Illuminate\View\View
     {
-        return view('pet.index');
+        return $this->loadView('index');
     }
 
     public function show(): \Illuminate\View\View
     {
-        return view('pet.show');
+        return $this->loadView('show');
     }
 
     public function create(): \Illuminate\View\View
     {
-        return view('pet.create');
+        return $this->loadView('create');
     }
 
     public function edit(): \Illuminate\View\View
     {
-        return view('pet.edit');
+        return $this->loadView('edit');
     }
 
     public function update(): \Illuminate\View\View
     {
-        return view('pet.update');
+        return $this->loadView('update');
     }
 
     public function delete(): \Illuminate\View\View
     {
-        return view('pet.delete');
+        return $this->loadView('delete');
+    }
+
+    private function loadView(string $viewName): \Illuminate\View\View
+    {
+        return view('pet.' . $viewName);
     }
 
     public function getPet(Request $request)
@@ -58,6 +64,9 @@ class PetController extends Controller
             return view('pet.pet', ['pet' => $pet]);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             return $this->handleClientException($e);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            Log::error($e->getMessage());
+            return $this->loadErrorView('Unexpected error occurred');
         }
     }
 
@@ -72,6 +81,9 @@ class PetController extends Controller
             return view('pet.pets_by_status', ['pets' => $pets]);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             return $this->handleClientException($e);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            Log::error($e->getMessage());
+            return $this->loadErrorView('Unexpected error occurred');
         }
     }
 
@@ -108,13 +120,17 @@ class PetController extends Controller
         $statusCode = $response->getStatusCode();
 
         if ($statusCode === 404) {
-            return view('pet.error', ['message' => 'Pet not found']);
+            return $this->loadErrorView('Pet not found');
         }
 
-        $responseBodyAsString = $response->getBody()->getContents();
-        $error = json_decode($responseBodyAsString, true);
+        $error = json_decode($response->getBody()->getContents(), true);
         $err = is_array($error) && isset($error['message']) ? $error['message'] : 'Unknown error';
-        return view('pet.error', ['message' => $err]);
+        return $this->loadErrorView($err);
+    }
+
+    private function loadErrorView(string $message): \Illuminate\View\View
+    {
+        return view('pet.error', ['message' => $message]);
     }
 
     private function validateStatuses(Request $request): array
@@ -137,16 +153,19 @@ class PetController extends Controller
         $response = $this->client->request('GET', $apiEndpoint);
         return json_decode($response->getBody()->getContents(), true);
     }
-
+    
     public function store(Request $request)
     {
         $validated = $this->validateCreateRequest($request);
-
+    
         try {
             $response = $this->createPet($validated);
             return $this->handleResponse($response);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             return $this->handleClientException($e);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            Log::error($e->getMessage());
+            return $this->loadErrorView('Unexpected error occurred');
         }
     }
 
@@ -176,9 +195,13 @@ class PetController extends Controller
 
         if ($statusCode === 200) {
             return view('pet.success', ['message' => 'Success']);
+        } elseif ($statusCode === 400) {
+            return $this->loadErrorView('Bad Request');
+        } elseif ($statusCode === 500) {
+            return $this->loadErrorView('Internal Server Error');
         }
 
-        return view('pet.error', ['message' => $content]);
+        return $this->loadErrorView($content);
     }
 
     public function editData(Request $request)
@@ -190,6 +213,9 @@ class PetController extends Controller
             return $this->handleResponse($response);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             return $this->handleClientException($e);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            Log::error($e->getMessage());
+            return $this->loadErrorView('Unexpected error occurred');
         }
     }
 
@@ -218,6 +244,9 @@ class PetController extends Controller
             return $this->handleResponse($response);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             return $this->handleClientException($e);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            Log::error($e->getMessage());
+            return $this->loadErrorView('Unexpected error occurred');
         }
     }
 
@@ -250,6 +279,9 @@ class PetController extends Controller
             return $this->handleResponse($response);
         } catch (\GuzzleHttp\Exception\ClientException $e) {
             return $this->handleClientException($e);
+        } catch (\GuzzleHttp\Exception\GuzzleException $e) {
+            Log::error($e->getMessage());
+            return $this->loadErrorView('Unexpected error occurred');
         }
     }
 }
